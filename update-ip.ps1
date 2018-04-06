@@ -4,10 +4,10 @@ Param(
     [parameter(Mandatory=$true)][string]$Secret,
     [string]$Endpoint = "https://api.godaddy.com/v1",
     [parameter(Mandatory=$true)][string]$Domain,
-    [parameter(Mandatory=$true)][string]$Subdomain,
     [int]$TTL = 3600,
     [string]$OverrideIP,
-    [switch]$ForceUpdate
+    [switch]$ForceUpdate,
+    [string]$RecordType = "A"
 )
 
 function Get-PublicIP {
@@ -17,7 +17,7 @@ function Get-PublicIP {
 
 function Check-Update([string]$newIP) {
     try {
-        $currentIP = [System.Net.Dns]::GetHostAddresses("$Subdomain.$Domain").IPAddressToString
+        $currentIP = [System.Net.Dns]::GetHostAddresses("$Domain").IPAddressToString
         if ($currentIP -eq $newIP) {
             Write-Host "Remote IP is the same, no need to update."
             Return $false
@@ -30,8 +30,8 @@ function Check-Update([string]$newIP) {
     Return $true
 }
 
-function Update-GodaddySubdomain([string]$Name, [string]$IP, [int]$TTL, [string]$Key, [string]$Secret) {
-    $data="[{`"type`":`"A`", `"name`": `"$Name`", `"data`":`"$IP`",`"ttl`":$TTL}]"
+function Update-GodaddyDomain([string]$Name, [string]$IP, [int]$TTL, [string]$Key, [string]$Secret, [string]$RecordType) {
+    $data="[{`"type`":`"$RecordType`", `"name`": `"$Name`", `"data`":`"$IP`",`"ttl`":$TTL}]"
     Write-Verbose "`$data = $data"
 
     $headers = @{
@@ -59,5 +59,5 @@ if ([string]::IsNullOrWhiteSpace($OverrideIP)) {
 }
 
 if ($ForceUpdate -Or (Check-Update -newIP $newIP)) {
-    Update-GodaddySubdomain -Name "$Subdomain.$Domain" -IP $newIP -TTL $TTL -Key $Key -Secret $Secret
+    Update-GodaddyDomain -Name "$Domain" -IP $newIP -TTL $TTL -Key $Key -Secret $Secret
 }
