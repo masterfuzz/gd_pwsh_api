@@ -59,5 +59,5 @@ if ([string]::IsNullOrWhiteSpace($OverrideIP)) {
 }
 
 if ($ForceUpdate -Or (Check-Update -newIP $newIP)) {
-    Update-GodaddyDomain -Name "$Domain" -IP $newIP -TTL $TTL -Key $Key -Secret $Secret
+    Update-GodaddyDomain -Name "$Domain" -IP $newIP -TTL $TTL -Key $Key -Secret $Secret -RecordType $RecordType
 }
